@@ -61,7 +61,18 @@ ctx:source_up()
 
 ### LSP
 
-To set up local LSP configuration use e.g.
+To set up local LSP configuration you must be using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) (current limitation).
+Configure the `on_setup` hook such that it sets `on_new_config` hook from exrc.nvim for each of your LSP setups:
+```lua
+local lsp_util = require('lspconfig.util')
+lsp_util.on_setup = lsp_util.add_hook_before(lsp_util.on_setup, function(config, user_config)
+    config.on_new_config = lsp_util.add_hook_before(config.on_new_config, require('exrc.lsp').on_new_config)
+end)
+```
+This on_new_config hook will check all LSP handlers registered in exrc files and apply updates from matching handlers
+whenever LSP client is started.
+
+Now you can use `lsp_setup` in your exrc files. Here is an example content of `.nvim.lua`:
 ```lua
 local ctx = require('exrc').init()
 -- Pass a table with keys being LSP client names. Handlers will be executed only
@@ -80,7 +91,7 @@ ctx:lsp_setup {
         }
     end,
     clangd = function(config, root_dir)
-        -- Example of changing LSP command to run in Docker
+        -- Example of changing LSP command to run in Docker, with volume mounts and clangd path mappings
         local host_dir = vim.fs.dirname(ctx.exrc_path)
         config.cmd = {
             'docker', 'run',

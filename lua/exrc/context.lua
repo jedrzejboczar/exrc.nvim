@@ -36,24 +36,29 @@ function Context:new(opts)
 end
 
 -- Similar to vim.fs.find { upward = true }, but limit is based on number of directories up (not #matches)
----@param dir string
+---@param start_dir string
 ---@param name string
 ---@param max_up integer
 ---@param stop? string
-local function fs_find_up(dir, name, max_up, stop)
+local function fs_find_up(start_dir, name, max_up, stop)
     local paths = {}
-    local i = 1
-    while dir and i <= max_up do
-        if dir == stop then
-            break
-        end
-        local path = vim.fs.joinpath(dir, name)
+
+    local function add_if_exists(path)
         local stat = vim.uv.fs_stat(path)
         if stat and stat.type == 'file' then
             table.insert(paths, path)
         end
-        dir = assert(vim.fs.dirname(dir))
     end
+
+    local i = 1
+    for dir in vim.fs.parents(start_dir) do
+        if dir == stop or i > max_up then
+            break
+        end
+        add_if_exists(vim.fs.joinpath(dir, name))
+        i = i + 1
+    end
+
     return paths
 end
 
@@ -72,15 +77,16 @@ function Context:source_up(opts)
     local found = fs_find_up(dir, loader.EXRC_NAME, opts.max_dirs or math.huge, opts.stop)
 
     if #found > 0 then
+        local max = (opts.source_max or math.huge)
+        utils.log.debug('source_up: loading %d files starting at "%s"', math.min(#found, max), dir)
         local n = 0
         for _, path in ipairs(found) do
             loader.load(path)
             n = n + 1
-            if n >= (opts.source_max or math.huge) then
+            if n >= max then
                 break
             end
         end
-        utils.log.debug('source_up: loaded %d files', n)
     elseif not opts.quiet then
         utils.log.warn('source_up: no exrc files found at "%s"', dir)
     end

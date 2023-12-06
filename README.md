@@ -1,3 +1,5 @@
+[![Lint](https://github.com/jedrzejboczar/exrc.nvim/actions/workflows/lint.yml/badge.svg)](https://github.com/jedrzejboczar/exrc.nvim/actions/workflows/lint.yml)
+
 # exrc.nvim
 
 Plugin that builds on top of Neovim's [|exrc|](https://neovim.io/doc/user/options.html#'exrc') and [vim.secure](https://neovim.io/doc/user/lua.html#vim.secure) by providing convenient utilities to set up project-local configurations.

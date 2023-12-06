@@ -9,6 +9,8 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     name: pandoc to vimdoc
+    permissions:
+      contents: write
     steps:
       - name: Wait until linting succeeds
         uses: lewagon/wait-on-check-action@v1.0.0
@@ -25,6 +27,8 @@ jobs:
           check-name: StyLua
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
+
+      - uses: actions/checkout@v2
 
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main

@@ -26,15 +26,6 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
 
-      - name: Wait until linting succeeds
-        uses: lewagon/wait-on-check-action@v1.0.0
-        with:
-          ref: master
-          check-name: Readme config
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-      - uses: actions/checkout@v2
-
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main
         with:

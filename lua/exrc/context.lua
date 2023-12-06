@@ -82,12 +82,12 @@ function Context:source_up(opts)
         end
         utils.log.debug('source_up: loaded %d files', n)
     elseif not opts.quiet then
-      utils.log.warn('source_up: no exrc files found at "%s"', dir)
+        utils.log.warn('source_up: no exrc files found at "%s"', dir)
     end
 end
 
 --- Configure lsp.on_new_config handlers for clients with matching root_dir
----@param handlers table<string, exrc.lsp.OnNewConfig> mapping of client_name to handler (after root_dir/client matching)
+---@param handlers table<string, exrc.lsp.OnNewConfig> maps client_name to handler (after root_dir/client matching)
 function Context:lsp_setup(handlers)
     self.lsp.setup(self.exrc_path, handlers)
 end

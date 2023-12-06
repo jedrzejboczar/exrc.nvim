@@ -13,23 +13,13 @@ M.loaded = {
     ---@type string[]
     history = {},
     ---@type table<string, exrc.Loaded>
-    db = {}
+    db = {},
 }
 
 ---@param path string
 ---@return boolean
 function M.is_loaded(path)
     return M.loaded.db[utils.clean_path(path)] ~= nil
-end
-
----@param fname string
----@return string
-local function read_file(fname)
-    local fd = assert(vim.loop.fs_open(fname, "r", 438))
-    local stat = assert(vim.loop.fs_fstat(fd))
-    local data = assert(vim.loop.fs_read(fd, stat.size, 0))
-    assert(vim.loop.fs_close(fd))
-    return data
 end
 
 --- Name of exrc file that is currently being loaded
@@ -116,7 +106,7 @@ function M.load_pending()
             prompt = 'Select .nvim.lua files to source, or quit to abort',
             format_item = function(item)
                 return vim.fn.fnamemodify(item, ':~')
-            end
+            end,
         })
         if item == nil then
             break
@@ -165,7 +155,7 @@ function M.ui_load(candidates, try_now)
                     resume()
                     return true -- remove autocmd
                 end
-            end
+            end,
         })
         coroutine.yield()
     end
@@ -177,8 +167,12 @@ end
 ---@param dirs string[]
 function M.load_from_dirs(dirs)
     local candidates = vim.iter(dirs)
-        :map(function(dir) return vim.fs.joinpath(dir, '.nvim.lua') end)
-        :filter(function(exrc) return vim.fn.filereadable(exrc) == 1 end)
+        :map(function(dir)
+            return vim.fs.joinpath(dir, '.nvim.lua')
+        end)
+        :filter(function(exrc)
+            return vim.fn.filereadable(exrc) == 1
+        end)
         :totable()
     candidates = utils.unique(candidates)
 
@@ -191,7 +185,7 @@ function M.on_dir_changed()
     local event = vim.api.nvim_get_vvar('event')
     local cwd = vim.fn.fnamemodify(event.cwd, ':p')
     if (event.scope == 'global' or event.scope == 'tabpage') and not event.changed_window then
-        coroutine.wrap(M.load_from_dirs)({cwd})
+        coroutine.wrap(M.load_from_dirs) { cwd }
     end
 end
 

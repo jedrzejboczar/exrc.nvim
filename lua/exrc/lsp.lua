@@ -10,7 +10,6 @@ local utils = require('exrc.utils')
 ---@type table<string, table<string, exrc.lsp.OnNewConfig>>
 M.handlers = {}
 
-
 local function dir_matches(top_dir, dir)
     dir = utils.clean_path(dir)
     top_dir = utils.clean_path(top_dir)
@@ -45,7 +44,12 @@ function M.on_new_config(config, root_dir)
     if #matching > 0 then
         local match = matching[1]
         match.handler(config, root_dir)
-        utils.log.debug('exrc.lsp.on_new_config: applied for %s out of %d candidates from dir "%s"', config.name, #matching, match.exrc_dir)
+        utils.log.debug(
+            'exrc.lsp.on_new_config: applied for %s out of %d candidates from dir "%s"',
+            config.name,
+            #matching,
+            match.exrc_dir
+        )
     end
 end
 
@@ -82,14 +86,18 @@ end
 
 --- Call this as a method of exrc.Context to get correct exrc_path
 ---@param exrc_path string
----@param handlers table<string, exrc.lsp.OnNewConfig> mapping of client_name to handler (after root_dir/client matching)
+---@param handlers table<string, exrc.lsp.OnNewConfig> maps client_name to handler (after root_dir/client matching)
 function M.setup(exrc_path, handlers)
     assert(require('lspconfig'), 'lspconfig needs to be installed')
 
     local first = not M.handlers[exrc_path]
     local exrc_dir = vim.fs.dirname(exrc_path)
-    utils.log.debug('exrc.lsp.setup(%s): %d handlers for dir: "%s"',
-        first and 'first' or 'reload', #vim.tbl_keys(handlers), exrc_dir)
+    utils.log.debug(
+        'exrc.lsp.setup(%s): %d handlers for dir: "%s"',
+        first and 'first' or 'reload',
+        #vim.tbl_keys(handlers),
+        exrc_dir
+    )
 
     M.handlers[exrc_path] = handlers
 

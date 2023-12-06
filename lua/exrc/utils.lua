@@ -68,7 +68,8 @@ end
 -- :luafile filename
 --   1: info={ namewhat = "", short_src = "stacktrace.lua", source = "@stacktrace.lua", what = "main" }
 -- :source filename
---   1: info={ namewhat = "", short_src = ".../exrc.nvim/scratch/stacktrace.lua", source = "@/full/path/to/exrc.nvim/scratch/stacktrace.lua", what = "main" }
+--   1: info={ namewhat = "", short_src = ".../exrc.nvim/scratch/stacktrace.lua",
+--             source = "@/full/path/to/exrc.nvim/scratch/stacktrace.lua", what = "main" }
 -- loadstring(read(filename), filename)()
 --   1: info={ namewhat = "", short_src = '[string "./stacktrace.lua"]', source = "./stacktrace.lua", what = "main" }
 --   2: info={ namewhat = "", short_src = '[string ":lua"]', source = ":lua", what = "main" }
@@ -84,8 +85,12 @@ end
 ---@field type 'exrc'|'luafile'|'source' detection between :luafile/:source might be inaccurate
 ---@field path string path to the loaded file
 
---- Retrieve load info when called in file loaded by |exrc| or ':luafile'/':source'
----@return exrc.LoadInfo[] first element is for the closest load, e.g. |exrc| which does ':luafile' will have { 1: luafile, 2: exrc }
+--- Retrieve load info when called in file loaded by |exrc| or ':luafile'/':source'.
+---
+--- First element in the returned LoadInfo is for the closest load, e.g. |exrc| which
+--- does ':luafile' will return { 1: luafile, 2: exrc }.
+---
+---@return exrc.LoadInfo[]
 function M.get_load_info()
     local stack = get_call_stack(3)
     local load_info = {}

@@ -72,7 +72,7 @@ function M.setup(opts)
             desc = 'Load exrc files when changing directory',
             callback = function()
                 require('exrc.loader').on_dir_changed()
-            end
+            end,
         })
     end
 
@@ -89,7 +89,7 @@ function M.setup(opts)
                 if not ok then
                     require('exrc.utils').log.error('Could not trust exrc file: %s', err)
                 end
-            end
+            end,
         })
     end
 end

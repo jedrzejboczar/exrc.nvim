@@ -54,6 +54,9 @@ and initialize exrc.nvim Context, then use provided fields/methods, e.g.
 ```lua
 local ctx = require('exrc').init()
 local path_to_this_file = ctx.exrc_path
+
+-- to load first exrc from directories above
+ctx:source_up()
 ```
 
 ### LSP

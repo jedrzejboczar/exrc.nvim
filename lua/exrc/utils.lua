@@ -105,8 +105,14 @@ function M.get_load_info()
                 local type = vim.fs.basename(path) == path and 'luafile' or 'exrc'
                 info = { type = type, path = M.clean_path(path) }
             end
-            assert(info, vim.inspect(stack))
-            table.insert(load_info, info)
+            if info then
+                table.insert(load_info, info)
+            else
+                M.log.debug(
+                    'get_load_info: ignoring "main" frame: %s',
+                    vim.inspect(frame):gsub('\n', ' '):gsub('%s+', ' ')
+                )
+            end
         end
     end
     return load_info
@@ -118,6 +124,46 @@ function M.get_exrc_path()
     return assert(M.get_load_info()[1].path)
 end
 
+function M.win_dir(win)
+    return vim.fn.getcwd(win or 0)
+end
+
+function M.tab_dir(tab)
+    tab = vim.api.nvim_tabpage_get_number(tab or vim.api.nvim_get_current_tabpage())
+    return vim.fn.getcwd(-1, tab)
+end
+
+function M.global_dir()
+    return vim.fn.getcwd(-1, -1)
+end
+
+---Defaults to global + tabs
+---@param opts? { global?: boolean, tabs?: boolean, windows?: boolean }
+function M.get_dirs(opts)
+    opts = vim.tbl_extend('force', {
+        global = true,
+        tabs = true,
+        windows = false,
+    }, opts or {})
+
+    local dirs = {}
+    if opts.global then
+        table.insert(dirs, M.global_dir())
+    end
+    if opts.tabs then
+        for _, tab in ipairs(vim.api.nvim_list_tabpages()) do
+            table.insert(dirs, M.tab_dir(tab))
+        end
+    end
+    if opts.windows then
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+            table.insert(dirs, M.win_dir(win))
+        end
+    end
+
+    return M.unique(dirs)
+end
+
 -- Convert list-like table to a set. Uses true or value_fn(val) as set values.
 function M.list_to_set(t, value_fn)
     local set = {}
@@ -125,6 +171,21 @@ function M.list_to_set(t, value_fn)
         set[val] = value_fn and value_fn(val) or true
     end
     return set
+end
+
+---@generic T
+---@param list T[]
+---@return T[]
+function M.unique(list)
+    local set = {}
+    return vim.tbl_filter(function(val)
+        if not set[val] then
+            set[val] = true
+            return true
+        else
+            return false
+        end
+    end, list)
 end
 
 return M

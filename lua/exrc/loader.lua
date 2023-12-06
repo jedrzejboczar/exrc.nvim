@@ -80,7 +80,10 @@ end
 M.pending_load = {}
 
 function M.load_pending()
-    local pending = vim.tbl_filter(M.is_loaded, M.pending_load)
+    local pending = vim.tbl_filter(function(path)
+        return not M.is_loaded(path)
+    end, M.pending_load)
+    pending = utils.unique(pending)
     if #pending == 0 then
         return
     end
@@ -177,6 +180,13 @@ function M.load_from_dirs(dirs)
     candidates = utils.unique(candidates)
 
     M.ui_load(candidates)
+end
+
+--- Load exrc from files in directories from getcwd (global/tabs/windows),
+--- by default global+tabs.
+---@param opts? { global?: boolean, tabs?: boolean, windows?: boolean }
+function M.load_from_cwd(opts)
+    M.load_from_dirs(utils.get_dirs(opts))
 end
 
 --- DirChanged handler that loads exrc files

@@ -105,7 +105,7 @@ function M.setup(exrc_path, handlers)
     local to_restart = {}
     for _, client in ipairs(vim.lsp.get_clients()) do
         if dir_matches(exrc_dir, client.config.root_dir) then
-            if M.handlers[exrc_dir][client.config.name] then
+            if M.handlers[exrc_path][client.config.name] then
                 table.insert(to_restart, client)
             end
         end

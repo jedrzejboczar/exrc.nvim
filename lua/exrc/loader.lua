@@ -32,25 +32,18 @@ local function read_file(fname)
     return data
 end
 
---- Load given exrc file
----@param exrc_path string
-function M.load(exrc_path)
+--- Name of exrc file that is currently being loaded
+---@type string?
+M._now_loading = nil
+
+function M.mark_loaded(exrc_path)
     exrc_path = utils.clean_path(exrc_path)
 
-    -- prepare data
+    -- NOTE: when mark_loaded is called we either want vim.secure.read prompt
+    -- or the file has already been trusted
     local data = vim.secure.read(exrc_path)
-    if not data then
-        error(string.format('Could not read file "%s"', data))
-    end
+    assert(data, 'vim.secure.read failed for mark_loaded')
     local hash = vim.fn.sha256(data)
-
-    -- execute the file, not 100% secure (delay between vim.secure.read and vim.cmd.source) but secure enough
-    utils.log.debug('Loading exrc "%s"', exrc_path)
-    local ok, result = xpcall(vim.cmd.source, debug.traceback, exrc_path)
-    if not ok then
-        utils.log.error('Failed to load exrc "%s"', exrc_path)
-        error(result)
-    end
 
     -- remove old one from history
     for i, hist_path in ipairs(M.loaded.history) do
@@ -66,6 +59,31 @@ function M.load(exrc_path)
         path = exrc_path,
         hash = hash,
     }
+end
+
+--- Load given exrc file
+---@param exrc_path string
+function M.load(exrc_path)
+    exrc_path = utils.clean_path(exrc_path)
+
+    -- Ensure we trust the file before loading
+    local data = vim.secure.read(exrc_path)
+    if not data then
+        error(string.format('Could not read file "%s"', data))
+    end
+
+    -- execute the file, not 100% secure (delay between vim.secure.read and vim.cmd.source) but secure enough
+    utils.log.debug('Loading exrc "%s"', exrc_path)
+    M._now_loading = exrc_path
+    local ok, result = xpcall(vim.cmd.source, debug.traceback, exrc_path)
+    M._now_loading = nil
+
+    if not ok then
+        utils.log.error('Failed to load exrc "%s"', exrc_path)
+        error(result)
+    else
+        M.mark_loaded(exrc_path)
+    end
 end
 
 ---@type string[]

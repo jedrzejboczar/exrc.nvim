@@ -23,9 +23,15 @@ function Context:new(opts)
     if #info == 0 then
         error('Could not detect exrc information')
     end
+
+    local exrc_path = info[1].path
+    if not Context.loader._now_loading then
+        Context.loader.mark_loaded(exrc_path)
+    end
+
     return setmetatable({
         load_info = info,
-        exrc_path = info[1].path
+        exrc_path = exrc_path,
     }, self)
 end
 

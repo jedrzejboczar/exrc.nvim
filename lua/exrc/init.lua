@@ -39,7 +39,9 @@ local function exrc_edit_cmd(opts)
         if #found == 1 then
             vim.cmd.edit(found[1])
         else
-            vim.ui.select(found, { prompt = 'Select exrc file to edit:' }, vim.cmd.edit)
+            vim.ui.select(found, { prompt = 'Select exrc file to edit:' }, function(item)
+                vim.cmd.edit(item)
+            end)
         end
     else
         utils.log.error('No exrc files found at "%s"', cwd)

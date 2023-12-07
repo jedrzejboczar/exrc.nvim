@@ -44,6 +44,11 @@ ones: `.nvimrc`/`.exrc`). Feature include:
 
 INSTALLATION                                     *exrc-exrc.nvim-installation*
 
+Currently requires Neovim nightly.
+
+
+  Feel free to test it with older versions of Neovim and report issues/create
+  PRs. Maybe it would be relatively easy to support some older releases.
 Example using lazy.nvim <https://github.com/folke/lazy.nvim>:
 
 >lua

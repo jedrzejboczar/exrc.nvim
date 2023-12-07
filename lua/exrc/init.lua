@@ -8,12 +8,13 @@ function M.init(opts)
 end
 
 local function exrc_edit_cmd(opts)
+    local defs = require('exrc.defs')
     local loader = require('exrc.loader')
     local utils = require('exrc.utils')
 
     local found = {}
     local function add_from(cwd)
-        local files = vim.fs.find(loader.EXRC_NAME, {
+        local files = vim.fs.find(defs.EXRC_NAME, {
             upward = true,
             type = 'file',
             path = cwd,
@@ -80,7 +81,7 @@ function M.setup(opts)
         vim.api.nvim_create_autocmd('BufWritePost', {
             group = group,
             desc = 'Trust exrc files after write',
-            pattern = require('exrc.loader').EXRC_NAME,
+            pattern = require('exrc.defs').EXRC_NAME,
             callback = function()
                 local ok, err = vim.secure.trust {
                     action = 'allow',

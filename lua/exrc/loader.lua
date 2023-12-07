@@ -2,9 +2,6 @@ local M = {}
 
 local utils = require('exrc.utils')
 
---- As defined in |exrc| ('.nvim.lua', '.nvimrc', '.exrc') but we use only the lua file
-M.EXRC_NAME = '.nvim.lua'
-
 ---@class exrc.Loaded
 ---@field path string
 ---@field hash string sha256

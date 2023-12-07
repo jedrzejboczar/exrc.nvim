@@ -1,3 +1,4 @@
+local defs = require('exrc.defs')
 local utils = require('exrc.utils')
 local loader = require('exrc.loader')
 
@@ -74,7 +75,7 @@ function Context:source_up(opts)
     opts = opts or {}
 
     local dir = assert(vim.fs.dirname(self.exrc_path))
-    local found = fs_find_up(dir, loader.EXRC_NAME, opts.max_dirs or math.huge, opts.stop)
+    local found = fs_find_up(dir, defs.EXRC_NAME, opts.max_dirs or math.huge, opts.stop)
 
     if #found > 0 then
         local max = (opts.source_max or math.huge)

@@ -1,5 +1,6 @@
 local M = {}
 
+local loader = require('exrc.loader')
 local utils = require('exrc.utils')
 
 --- Handler called in on_new_config hook that should update config in-place.
@@ -84,6 +85,25 @@ local function restart_clients(clients)
     )
 end
 
+local function restart_clients_for(exrc_path)
+    local exrc_dir = vim.fs.dirname(exrc_path)
+    -- restart all matching clients that are already running
+    local to_restart = {}
+    for _, client in ipairs(vim.lsp.get_clients()) do
+        if dir_matches(exrc_dir, client.config.root_dir) then
+            if M.handlers[exrc_path][client.config.name] then
+                table.insert(to_restart, client)
+            end
+        end
+    end
+    return function()
+        if #to_restart > 0 then
+            utils.log.debug('exrc.lsp.setup: restarting %d clients', #to_restart)
+            restart_clients(to_restart)
+        end
+    end
+end
+
 --- Call this as a method of exrc.Context to get correct exrc_path
 ---@param exrc_path string
 ---@param handlers table<string, exrc.lsp.OnNewConfig> maps client_name to handler (after root_dir/client matching)
@@ -102,18 +122,13 @@ function M.setup(exrc_path, handlers)
     M.handlers[exrc_path] = handlers
 
     -- restart all matching clients that are already running
-    local to_restart = {}
-    for _, client in ipairs(vim.lsp.get_clients()) do
-        if dir_matches(exrc_dir, client.config.root_dir) then
-            if M.handlers[exrc_path][client.config.name] then
-                table.insert(to_restart, client)
-            end
-        end
-    end
-    if #to_restart > 0 then
-        utils.log.debug('exrc.lsp.setup: restarting %d clients', #to_restart)
-        restart_clients(to_restart)
-    end
+    restart_clients_for(exrc_path)()
+
+    loader.add_on_unload(exrc_path, function()
+        local restart = restart_clients_for(exrc_path)
+        M.handlers[exrc_path] = nil
+        restart()
+    end)
 end
 
 return M

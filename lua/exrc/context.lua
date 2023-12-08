@@ -15,9 +15,8 @@ Context.utils = require('exrc.utils')
 Context.clean_path = Context.utils.clean_path
 
 ---@class exrc.InitOpts
---TODO: destructor callback
 
----@param opts exrc.InitOpts
+---@param opts? exrc.InitOpts
 ---@return exrc.Context
 function Context:new(opts)
     local info = utils.get_load_info()
@@ -26,14 +25,17 @@ function Context:new(opts)
     end
 
     local exrc_path = info[1].path
-    if not Context.loader._now_loading then
-        Context.loader.mark_loaded(exrc_path)
-    end
+    Context.loader.mark_loaded(exrc_path)
 
     return setmetatable({
         load_info = info,
         exrc_path = exrc_path,
     }, self)
+end
+
+---@param fn fun()
+function Context:on_unload(fn)
+    Context.loader.add_on_unload(self.exrc_path, fn)
 end
 
 -- Similar to vim.fs.find { upward = true }, but limit is based on number of directories up (not #matches)

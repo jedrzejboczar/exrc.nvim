@@ -8,9 +8,9 @@ Plugin that builds on top of Neovim's [|exrc|](https://neovim.io/doc/user/option
 
 Neovim has a feature called [|exrc|](https://neovim.io/doc/user/options.html#'exrc') that can automatically
 load `.nvim.lua`/`.nvimrc`/`.exrc` files when starting the editor, which is great for setting up project-local
-configuration. For a long time it was considered a security risk because it could lead to arbitrary code execution 
-(e.g. malicious `.nvim.lua` in cloned git repo), but with the addition of [vim.secure](https://neovim.io/doc/user/lua.html#vim.secure) 
-this is no longer the case - Neovim manages a database of "trusted" files and, whenever loading a file which has 
+configuration. For a long time it was considered a security risk because it could lead to arbitrary code execution
+(e.g. malicious `.nvim.lua` in cloned git repo), but with the addition of [vim.secure](https://neovim.io/doc/user/lua.html#vim.secure)
+this is no longer the case - Neovim manages a database of "trusted" files and, whenever loading a file which has
 been modified since last time, you will be asked if you trust the file before executing any code.
 
 This plugin adds several utilities that make it easier to write your `|exrc|` files in Lua
@@ -19,7 +19,9 @@ Feature include:
 
 * Auto-detect path to the currently executed exrc (`.nvim.lua`)
 * Provide `source_up` for loading exrc from directories above
-* `:ExrcEdit` command to easily edit exrc files
+* `:ExrcEdit*` commands to easily edit exrc files
+* `:ExrcLoad` command for (re-)loading exrc files
+* Automatic telescope integration if available
 * Auto-trust written exrc files
 * Automatically load exrc when changing directory
 * Setting up project-local LSP config when using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)

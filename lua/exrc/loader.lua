@@ -5,6 +5,7 @@ local utils = require('exrc.utils')
 ---@class exrc.Loaded
 ---@field path string
 ---@field hash string sha256
+---@field on_unload? fun()
 
 M.loaded = {
     ---@type string[]
@@ -19,19 +20,19 @@ function M.is_loaded(path)
     return M.loaded.db[utils.clean_path(path)] ~= nil
 end
 
---- Name of exrc file that is currently being loaded
----@type string?
-M._now_loading = nil
+function M.add_on_unload(exrc_path, fn)
+    local entry = assert(M.loaded.db[exrc_path])
+    local old_fn = entry.on_unload
+    entry.on_unload = function()
+        if old_fn then
+            old_fn()
+        end
+        fn()
+    end
+end
 
-function M.mark_loaded(exrc_path)
-    exrc_path = utils.clean_path(exrc_path)
-
-    -- NOTE: when mark_loaded is called we either want vim.secure.read prompt
-    -- or the file has already been trusted
-    local data = vim.secure.read(exrc_path)
-    assert(data, 'vim.secure.read failed for mark_loaded')
-    local hash = vim.fn.sha256(data)
-
+local function db_remove(exrc_path)
+    utils.log.trace('exrc.db_remove(%s)', exrc_path)
     -- remove old one from history
     for i, hist_path in ipairs(M.loaded.history) do
         if hist_path == exrc_path then
@@ -39,6 +40,23 @@ function M.mark_loaded(exrc_path)
             break
         end
     end
+    M.loaded.db[exrc_path] = nil
+end
+
+--- Name of exrc file that is currently being loaded
+---@type string?
+M._now_loading = nil
+
+function M.mark_loaded(exrc_path)
+    utils.log.trace('exrc.mark_loaded(%s)', exrc_path)
+    exrc_path = utils.clean_path(exrc_path)
+    assert(not M.is_loaded(exrc_path))
+
+    -- NOTE: when mark_loaded is called we either want vim.secure.read prompt
+    -- or the file has already been trusted
+    local data = vim.secure.read(exrc_path)
+    assert(data, 'vim.secure.read failed for mark_loaded')
+    local hash = vim.fn.sha256(data)
 
     -- add to database
     table.insert(M.loaded.history, exrc_path)
@@ -51,6 +69,7 @@ end
 --- Load given exrc file
 ---@param exrc_path string
 function M.load(exrc_path)
+    utils.log.trace('exrc.load(%s)', exrc_path)
     exrc_path = utils.clean_path(exrc_path)
 
     -- Ensure we trust the file before loading
@@ -58,6 +77,8 @@ function M.load(exrc_path)
     if not data then
         error(string.format('Could not read file "%s"', data))
     end
+
+    M.unload(exrc_path)
 
     -- execute the file, not 100% secure (delay between vim.secure.read and vim.cmd.source) but secure enough
     utils.log.debug('Loading exrc "%s"', exrc_path)
@@ -68,9 +89,20 @@ function M.load(exrc_path)
     if not ok then
         utils.log.error('Failed to load exrc "%s"', exrc_path)
         error(result)
-    else
+    elseif not M.loaded.db[exrc_path] then -- if not called by Context:new
         M.mark_loaded(exrc_path)
     end
+end
+
+--- Unload given exrc file by calling on_unload and removing from db
+---@param exrc_path string
+function M.unload(exrc_path)
+    exrc_path = utils.clean_path(exrc_path)
+    if M.loaded.db[exrc_path] and M.loaded.db[exrc_path].on_unload then
+        utils.log.trace('exrc.unload.on_unload(%s)', exrc_path)
+        M.loaded.db[exrc_path].on_unload()
+    end
+    db_remove(exrc_path)
 end
 
 ---@type string[]
@@ -81,6 +113,7 @@ function M.load_pending()
         return not M.is_loaded(path)
     end, M.pending_load)
     pending = utils.unique(pending)
+    utils.log.trace('exrc.load_pending(#%d)', #pending)
     if #pending == 0 then
         return
     end
@@ -141,6 +174,8 @@ end
 ---@param candidates string[]
 ---@param try_now boolean?
 function M.ui_load(candidates, try_now)
+    utils.log.trace('exrc.ui_load(#%d, %s): aleady_pending=%d', #candidates, try_now, #M.pending_load)
+
     local already_pending = #M.pending_load > 0
     vim.list_extend(M.pending_load, candidates)
     if already_pending then
@@ -192,6 +227,7 @@ function M.on_dir_changed()
     local event = vim.api.nvim_get_vvar('event')
     local cwd = vim.fn.fnamemodify(event.cwd, ':p')
     if (event.scope == 'global' or event.scope == 'tabpage') and not event.changed_window then
+        utils.log.trace('exrc.on_dir_changed(%s)', cwd)
         coroutine.wrap(M.load_from_dirs) { cwd }
     end
 end

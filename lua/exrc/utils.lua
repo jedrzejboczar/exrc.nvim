@@ -1,5 +1,7 @@
 local M = {}
 
+local config = require('exrc.config')
+
 function M.coroutine_resume()
     local co = assert(coroutine.running())
     return function(...)
@@ -19,6 +21,9 @@ end
 
 local function logger(level, notify_fn, cond)
     return function(...)
+        if level < config.min_log_level then
+            return
+        end
         if cond and not cond() then
             return
         end
@@ -30,10 +35,12 @@ local function logger(level, notify_fn, cond)
 end
 
 M.log = {
+    trace = logger(vim.log.levels.TRACE, 'notify'),
     debug = logger(vim.log.levels.DEBUG, 'notify'),
     info = logger(vim.log.levels.INFO, 'notify'),
     warn = logger(vim.log.levels.WARN, 'notify'),
     error = logger(vim.log.levels.ERROR, 'notify'),
+    trace_once = logger(vim.log.levels.TRACE, 'notify_once'),
     debug_once = logger(vim.log.levels.DEBUG, 'notify_once'),
     info_once = logger(vim.log.levels.INFO, 'notify_once'),
     warn_once = logger(vim.log.levels.WARN, 'notify_once'),

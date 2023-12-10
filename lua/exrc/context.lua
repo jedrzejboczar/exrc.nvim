@@ -5,6 +5,7 @@ local utils = require('exrc.utils')
 
 ---@class exrc.Context
 ---@field exrc_path string
+---@field exrc_dir string
 ---@field load_info exrc.LoadInfo[]
 local Context = {}
 Context.__index = Context
@@ -31,6 +32,7 @@ function Context:new(opts)
     return setmetatable({
         load_info = info,
         exrc_path = exrc_path,
+        exrc_dir = vim.fs.dirname(exrc_path),
     }, self)
 end
 

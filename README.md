@@ -15,17 +15,17 @@ been modified since last time, you will be asked if you trust the file before ex
 
 This plugin adds several utilities that make it easier to write your `|exrc|` files in Lua
 (**only** `.nvim.lua` files are supported, **not** the Vimscript ones: `.nvimrc`/`.exrc`).
-Feature include:
+Features include:
 
 * Auto-detect path to the currently executed exrc (`.nvim.lua`)
 * Provide `source_up` for loading exrc from directories above
-* `:ExrcEdit*` commands to easily edit exrc files
-* `:ExrcLoad` command for (re-)loading exrc files
+* `:Exrc*` commands for managing exrc files (info, edit, load/unload/reload, ...)
 * Automatic telescope integration if available
-* Auto-trust written exrc files
-* Automatically load exrc when changing directory
-* Setting up project-local LSP config when using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
-* **TODO:** cleanup hooks and reloading of exrc files
+* Auto-trust exrc files changed from withing Neovim
+* Automatically load exrc when changing directory with `:cd`
+* Setting up project-local LSP config (even `config.cmd`) when using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
+* Set `on_unload` cleanup hooks called when un-/reloading exrc files
+* **TODO:** register variables with UI to modify them and auto-reload exrc
 
 ### Similar plugins
 
@@ -137,6 +137,70 @@ ctx:lsp_setup {
             -- clangd path mappings to translate between paths on host and in container
             string.format('--path-mappings=%s=%s', host_dir, '/root/workdir'),
         }
+    end,
+}
+```
+
+## Examples
+
+### Add .nvim.lua to .gitignore without modifying the repository
+
+You can use `$GIT_DIR/info/exclude` file or configure `core.excludeFiles`,
+see [Git documentation](https://git-scm.com/docs/gitignore#_description).
+For `$GIT_DIR/info/exclude` this can be symlinked somewhere else.
+
+### How to store .nvim.lua in separate repository?
+
+If you want to track your .nvim.lua in Git in separate repository, use symbolic links, e.g.
+```
+> tree ./top-dir
+./top-dir
+├── my-exrc-repo
+│   └── my-project.lua
+└── my-project
+    └── my-project.lua -> ../my-exrc-repo/my-project.lua
+```
+
+### Add build tasks with overseer.nvim
+
+Register local tasks for (overseer.nvim)[https://github.com/stevearc/overseer.nvim]:
+
+```lua
+local ctx = require('exrc').init()
+local overseer = require('overseer')
+
+overseer.register_template {
+    name = 'my local task template',
+    condition = { dir = ctx.exrc_dir },
+    builder = function(params)
+        return {
+            name = 'my local task',
+            cwd = ctx.exrc_dir,
+            cmd = 'echo "running task command"',
+        }
+    end,
+}
+
+overseer.register_template {
+    name = 'my local complex task template',
+    tags = { overseer.TAG.BUILD },
+    params = {
+        -- ...
+    },
+    condition = { dir = ctx.exrc_dir },
+    builder = function(params)
+        local task = {
+            name = 'my local complex task',
+            cwd = ctx.exrc_dir,
+            strategy = {
+                'orchestrator',
+                tasks = {
+                    { 'shell', name = 'stage 1', cmd = 'echo "setting something up in directory $PWD"' },
+                    { 'shell', name = 'stage 2', cmd = 'echo "running build process"' },
+                },
+            },
+        }
+        return task
     end,
 }
 ```

@@ -39,7 +39,6 @@ local display_exrc_dir = {
 ---@field on_choice fun(file: string)
 ---@field display? exrc.commands.Display
 
-
 ---@param opts exrc.commands.select_files.Opts
 local function select_files(opts)
     local use_telescope = config.use_telescope and pcall(require, 'telescope')
@@ -68,41 +67,40 @@ local function select_files(opts)
 
             local mt = getmetatable(entry)
             local orig_display = mt.display
-            mt.display = function(entry)
-                return display(entry, orig_display)
+            mt.display = function(e)
+                return display(e, orig_display)
             end
         end
 
-        pickers.new({}, {
-            prompt_title = opts.prompt,
-            finder = finders.new_table {
-                results = opts.files,
-                entry_maker = function(file)
-                    local entry = gen_from_file(file)
-                    patch_mt(entry)
-                    return entry
+        pickers
+            .new({}, {
+                prompt_title = opts.prompt,
+                finder = finders.new_table {
+                    results = opts.files,
+                    entry_maker = function(file)
+                        local entry = gen_from_file(file)
+                        patch_mt(entry)
+                        return entry
+                    end,
+                },
+                previewer = tele_conf.file_previewer {},
+                sorter = tele_conf.file_sorter {},
+                attach_mappings = function()
+                    actions.select_default:replace(function(buf)
+                        local entry = action_state.get_selected_entry()
+                        actions.close(buf)
+                        opts.on_choice(entry.value)
+                    end)
+                    return true
                 end,
-            },
-            previewer = tele_conf.file_previewer({}),
-            sorter = tele_conf.file_sorter({}),
-            attach_mappings = function()
-                actions.select_default:replace(function(buf)
-                    local entry = action_state.get_selected_entry()
-                    actions.close(buf)
-                    opts.on_choice(entry.value)
-                end)
-                return true
-            end
-        }):find()
+            })
+            :find()
     end
 end
 
 ---@param opts? { is_loaded?: boolean, buf_paths?: boolean }
 ---@return string[]
 local function exrc_list(opts)
-    local defs = require('exrc.defs')
-    local loader = require('exrc.loader')
-
     opts = opts or {}
 
     local files = {}
@@ -137,7 +135,7 @@ local function exrc_list(opts)
     -- now filter results and remove duplicates
     local set = {}
     files = vim.tbl_map(utils.clean_path, files)
-    files = vim.tbl_filter(function (file)
+    files = vim.tbl_filter(function(file)
         if set[file] then
             return false
         end
@@ -209,10 +207,7 @@ M.exrc_load = exrc_do {
     get_paths = function(opts)
         return exrc_list { buf_paths = true, is_loaded = not opts.bang and false or nil }
     end,
-    on_select = function(file)
-        local loader = require('exrc.loader')
-        loader.load(file)
-    end,
+    on_select = loader.load,
 }
 
 M.exrc_create = exrc_do {

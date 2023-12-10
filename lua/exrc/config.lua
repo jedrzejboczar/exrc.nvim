@@ -12,7 +12,7 @@ local function defaults()
         },
         commands = {
             instant_edit_single = true, -- Do not use vim.ui.select if there is only 1 candidate for ExrcEdit* commands
-        }
+        },
     }
 end
 

@@ -64,6 +64,9 @@ require('exrc').setup {
     lsp = {
         auto_setup = false, -- Automatically configure lspconfig to register on_new_config
     },
+    commands = {
+        instant_edit_single = true, -- Do not use vim.ui.select if there is only 1 candidate for ExrcEdit* commands
+    },
 }
 ```
 

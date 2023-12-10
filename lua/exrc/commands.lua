@@ -3,6 +3,7 @@ local M = {}
 local config = require('exrc.config')
 local defs = require('exrc.defs')
 local loader = require('exrc.loader')
+local log = require('exrc.log')
 local utils = require('exrc.utils')
 
 ---@class exrc.commands.Display
@@ -173,7 +174,7 @@ local function exrc_do(opts)
                 }
             end
         else
-            utils.log.error(opts.error_msg or 'No exrc files found')
+            log.error(opts.error_msg or 'No exrc files found')
         end
     end
 end

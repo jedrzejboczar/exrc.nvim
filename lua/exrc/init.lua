@@ -1,6 +1,7 @@
 local M = {}
 
 local config = require('exrc.config')
+local log = require('exrc.log')
 
 --- Use as first line of .nvim.lua, e.g. `local ctx = require('exrc').init()`
 ---@param opts? exrc.InitOpts
@@ -65,7 +66,7 @@ function M.setup(opts)
                     bufnr = vim.api.nvim_get_current_buf(),
                 }
                 if not ok then
-                    require('exrc.utils').log.error('Could not trust exrc file: %s', err)
+                    log.error('Could not trust exrc file: %s', err)
                 end
             end,
         })

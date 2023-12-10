@@ -1,6 +1,7 @@
 local defs = require('exrc.defs')
-local utils = require('exrc.utils')
 local loader = require('exrc.loader')
+local log = require('exrc.log')
+local utils = require('exrc.utils')
 
 ---@class exrc.Context
 ---@field exrc_path string
@@ -81,7 +82,7 @@ function Context:source_up(opts)
 
     if #found > 0 then
         local max = (opts.source_max or math.huge)
-        utils.log.debug('source_up: loading %d files starting at "%s"', math.min(#found, max), dir)
+        log.debug('source_up: loading %d files starting at "%s"', math.min(#found, max), dir)
         local n = 0
         for _, path in ipairs(found) do
             loader.load(path)
@@ -91,7 +92,7 @@ function Context:source_up(opts)
             end
         end
     elseif not opts.quiet then
-        utils.log.warn('source_up: no exrc files found at "%s"', dir)
+        log.warn('source_up: no exrc files found at "%s"', dir)
     end
 end
 

@@ -7,6 +7,9 @@ local function defaults()
         trust_on_write = true, -- Automatically trust when saving exrc file
         use_telescope = true, -- Use telescope instead of vim.ui.select for picking files (if available)
         min_log_level = vim.log.levels.TRACE, -- Disable notifications below this level
+        lsp = {
+            auto_setup = false, -- Automatically configure lspconfig to register on_new_config
+        },
     }
 end
 

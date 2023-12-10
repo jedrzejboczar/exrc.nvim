@@ -71,6 +71,18 @@ function M.setup(opts)
             end,
         })
     end
+
+    if config.lsp.auto_setup then
+        local ok, lsp_util = pcall(require, 'lspconfig.util')
+        if not ok then
+            log.error('Could not load "lspconfig.util" needed to configure lsp module')
+        else
+            lsp_util.on_setup = lsp_util.add_hook_before(lsp_util.on_setup, function(config, user_config)
+                local on_new_config = require('exrc.lsp').on_new_config
+                config.on_new_config = lsp_util.add_hook_before(config.on_new_config, on_new_config)
+            end)
+        end
+    end
 end
 
 return M

@@ -44,7 +44,12 @@ Example using [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-    { 'jedrzejboczar/exrc.nvim', config = true, opts = { --[[ your config ]] } },
+    {
+        'jedrzejboczar/exrc.nvim',
+        dependencies = {'neovim/nvim-lspconfig'}, -- (optional)
+        config = true,
+        opts = { --[[ your config ]] } ,
+    },
 }
 ```
 

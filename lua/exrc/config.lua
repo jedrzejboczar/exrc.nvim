@@ -16,8 +16,7 @@ end
 local config = defaults()
 
 -- Keys that cannot be checked automatically because they are nil by default
-local nil_keys = {
-}
+local nil_keys = {}
 
 local function warn_on_unknown_keys(conf)
     local unknown = {}
@@ -62,8 +61,7 @@ local function warn_on_unknown_keys(conf)
     end
 end
 
-local function fix_compatibility(opts)
-end
+local function fix_compatibility(opts) end
 
 function M.setup(opts)
     warn_on_unknown_keys(opts)

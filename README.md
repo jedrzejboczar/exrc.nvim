@@ -80,6 +80,10 @@ local path_to_this_file = ctx.exrc_path
 ctx:source_up()
 ```
 
+`exrc.nvim` provides some useful commands like `ExrcEdit` or `ExrcInfo`.
+Type `:command Exrc` to see all the available commands with descriptions.
+
+
 ### LSP
 
 To set up local LSP configuration you must be using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) (current limitation).

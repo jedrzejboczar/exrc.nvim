@@ -24,11 +24,16 @@ function M.setup(opts)
     require('exrc.config').setup(opts)
 
     local command = vim.api.nvim_create_user_command
+
+    command('ExrcInfo', lazy_cmd.exrc_info, {
+        -- bang = true,
+        desc = 'Show information about current exrc state',
+    })
+
     command('ExrcEdit', lazy_cmd.exrc_edit, {
         bang = true,
         desc = 'Select exrc file to edit (! discovers more files)',
     })
-
     command('ExrcEditLoaded', lazy_cmd.exrc_edit_loaded, {
         bang = true,
         desc = 'Select exrc file to edit from already loaded (! for not-loaded)',
@@ -37,6 +42,23 @@ function M.setup(opts)
     command('ExrcLoad', lazy_cmd.exrc_load, {
         bang = true,
         desc = 'Select and load exrc file (! to include already loaded)',
+    })
+    command('ExrcLoadAll', lazy_cmd.exrc_load_all, {
+        bang = true,
+        desc = 'Load all discovered exrc files (! to include already loaded -> reload)',
+    })
+    command('ExrcReload', lazy_cmd.exrc_reload, {
+        desc = 'Select an already loaded file to reload',
+    })
+    command('ExrcReloadAll', lazy_cmd.exrc_reload_all, {
+        desc = 'Reload all already loaded files',
+    })
+
+    command('ExrcUnload', lazy_cmd.exrc_unload, {
+        desc = 'Select exrc file to unload',
+    })
+    command('ExrcUnloadAll', lazy_cmd.exrc_unload_all, {
+        desc = 'Unload all loaded exrc files',
     })
 
     command('ExrcCreate', lazy_cmd.exrc_create, {

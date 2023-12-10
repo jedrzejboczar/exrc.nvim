@@ -22,19 +22,24 @@ local lazy_cmd = setmetatable({}, {
 function M.setup(opts)
     require('exrc.config').setup(opts)
 
-    vim.api.nvim_create_user_command('ExrcEdit', lazy_cmd.exrc_edit, {
+    local command = vim.api.nvim_create_user_command
+    command('ExrcEdit', lazy_cmd.exrc_edit, {
         bang = true,
         desc = 'Select exrc file to edit (! discovers more files)',
     })
 
-    vim.api.nvim_create_user_command('ExrcEditLoaded', lazy_cmd.exrc_edit_loaded, {
+    command('ExrcEditLoaded', lazy_cmd.exrc_edit_loaded, {
         bang = true,
         desc = 'Select exrc file to edit from already loaded (! for not-loaded)',
     })
 
-    vim.api.nvim_create_user_command('ExrcLoad', lazy_cmd.exrc_load, {
+    command('ExrcLoad', lazy_cmd.exrc_load, {
         bang = true,
         desc = 'Select and load exrc file (! to include already loaded)',
+    })
+
+    command('ExrcCreate', lazy_cmd.exrc_create, {
+        desc = 'Select path to create a new .nvim.lua file',
     })
 
     local group = vim.api.nvim_create_augroup('Exrc', { clear = true })

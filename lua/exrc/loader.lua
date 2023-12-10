@@ -1,5 +1,6 @@
 local M = {}
 
+local log = require('exrc.log')
 local utils = require('exrc.utils')
 
 ---@class exrc.Loaded
@@ -32,7 +33,7 @@ function M.add_on_unload(exrc_path, fn)
 end
 
 local function db_remove(exrc_path)
-    utils.log.trace('exrc.db_remove(%s)', exrc_path)
+    log.trace('exrc.db_remove(%s)', exrc_path)
     -- remove old one from history
     for i, hist_path in ipairs(M.loaded.history) do
         if hist_path == exrc_path then
@@ -48,7 +49,7 @@ end
 M._now_loading = nil
 
 function M.mark_loaded(exrc_path)
-    utils.log.trace('exrc.mark_loaded(%s)', exrc_path)
+    log.trace('exrc.mark_loaded(%s)', exrc_path)
     exrc_path = utils.clean_path(exrc_path)
     assert(not M.is_loaded(exrc_path))
 
@@ -69,7 +70,7 @@ end
 --- Load given exrc file
 ---@param exrc_path string
 function M.load(exrc_path)
-    utils.log.trace('exrc.load(%s)', exrc_path)
+    log.trace('exrc.load(%s)', exrc_path)
     exrc_path = utils.clean_path(exrc_path)
 
     -- Ensure we trust the file before loading
@@ -81,13 +82,13 @@ function M.load(exrc_path)
     M.unload(exrc_path)
 
     -- execute the file, not 100% secure (delay between vim.secure.read and vim.cmd.source) but secure enough
-    utils.log.debug('Loading exrc "%s"', exrc_path)
+    log.debug('Loading exrc "%s"', exrc_path)
     M._now_loading = exrc_path
     local ok, result = xpcall(vim.cmd.source, debug.traceback, exrc_path)
     M._now_loading = nil
 
     if not ok then
-        utils.log.error('Failed to load exrc "%s"', exrc_path)
+        log.error('Failed to load exrc "%s"', exrc_path)
         error(result)
     elseif not M.loaded.db[exrc_path] then -- if not called by Context:new
         M.mark_loaded(exrc_path)
@@ -99,7 +100,7 @@ end
 function M.unload(exrc_path)
     exrc_path = utils.clean_path(exrc_path)
     if M.loaded.db[exrc_path] and M.loaded.db[exrc_path].on_unload then
-        utils.log.trace('exrc.unload.on_unload(%s)', exrc_path)
+        log.trace('exrc.unload.on_unload(%s)', exrc_path)
         M.loaded.db[exrc_path].on_unload()
     end
     db_remove(exrc_path)
@@ -113,7 +114,7 @@ function M.load_pending()
         return not M.is_loaded(path)
     end, M.pending_load)
     pending = utils.unique(pending)
-    utils.log.trace('exrc.load_pending(#%d)', #pending)
+    log.trace('exrc.load_pending(#%d)', #pending)
     if #pending == 0 then
         return
     end
@@ -152,11 +153,11 @@ function M.load_pending()
         if ok then
             n_loaded = n_loaded + 1
         elseif err and vim.startswith(err, 'Could not read file') then
-            utils.log.warn('Aborted: %s', item)
+            log.warn('Aborted: %s', item)
         end
     end
 
-    utils.log.info('Loaded %d/%d files', n_loaded, n_initial)
+    log.info('Loaded %d/%d files', n_loaded, n_initial)
     M.pending_load = {}
 end
 
@@ -174,7 +175,7 @@ end
 ---@param candidates string[]
 ---@param try_now boolean?
 function M.ui_load(candidates, try_now)
-    utils.log.trace('exrc.ui_load(#%d, %s): aleady_pending=%d', #candidates, try_now, #M.pending_load)
+    log.trace('exrc.ui_load(#%d, %s): aleady_pending=%d', #candidates, try_now, #M.pending_load)
 
     local already_pending = #M.pending_load > 0
     vim.list_extend(M.pending_load, candidates)
@@ -227,7 +228,7 @@ function M.on_dir_changed()
     local event = vim.api.nvim_get_vvar('event')
     local cwd = vim.fn.fnamemodify(event.cwd, ':p')
     if (event.scope == 'global' or event.scope == 'tabpage') and not event.changed_window then
-        utils.log.trace('exrc.on_dir_changed(%s)', cwd)
+        log.trace('exrc.on_dir_changed(%s)', cwd)
         coroutine.wrap(M.load_from_dirs) { cwd }
     end
 end

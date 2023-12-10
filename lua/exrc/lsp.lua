@@ -1,6 +1,7 @@
 local M = {}
 
 local loader = require('exrc.loader')
+local log = require('exrc.log')
 local utils = require('exrc.utils')
 
 --- Handler called in on_new_config hook that should update config in-place.
@@ -45,7 +46,7 @@ function M.on_new_config(config, root_dir)
     if #matching > 0 then
         local match = matching[1]
         match.handler(config, root_dir)
-        utils.log.debug(
+        log.debug(
             'exrc.lsp.on_new_config: applied for %s out of %d candidates from dir "%s"',
             config.name,
             #matching,
@@ -98,7 +99,7 @@ local function restart_clients_for(exrc_path)
     end
     return function()
         if #to_restart > 0 then
-            utils.log.debug('exrc.lsp.setup: restarting %d clients', #to_restart)
+            log.debug('exrc.lsp.setup: restarting %d clients', #to_restart)
             restart_clients(to_restart)
         end
     end
@@ -112,7 +113,7 @@ function M.setup(exrc_path, handlers)
 
     local first = not M.handlers[exrc_path]
     local exrc_dir = vim.fs.dirname(exrc_path)
-    utils.log.debug(
+    log.debug(
         'exrc.lsp.setup(%s): %d handlers for dir: "%s"',
         first and 'first' or 'reload',
         #vim.tbl_keys(handlers),

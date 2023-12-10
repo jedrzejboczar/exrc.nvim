@@ -4,6 +4,7 @@ local config = require('exrc.config')
 local defs = require('exrc.defs')
 local loader = require('exrc.loader')
 local log = require('exrc.log')
+local lsp = require('exrc.lsp')
 local utils = require('exrc.utils')
 
 ---@class exrc.commands.Display
@@ -188,7 +189,7 @@ M.exrc_edit = exrc_do {
         return exrc_list { buf_paths = opts.bang }
     end,
     on_select = edit,
-    auto_select_single = true,
+    auto_select_single = config.commands.instant_edit_single,
 }
 
 M.exrc_edit_loaded = exrc_do {
@@ -198,7 +199,7 @@ M.exrc_edit_loaded = exrc_do {
         return exrc_list { buf_paths = true, is_loaded = not opts.bang }
     end,
     on_select = edit,
-    auto_select_single = true,
+    auto_select_single = config.commands.instant_edit_single,
 }
 
 M.exrc_load = exrc_do {
@@ -209,6 +210,45 @@ M.exrc_load = exrc_do {
     end,
     on_select = loader.load,
 }
+
+M.exrc_load_all = function(opts)
+    local files = exrc_list { buf_paths = true, is_loaded = not opts.bang and false or nil }
+    for _, file in ipairs(files) do
+        loader.load(file)
+    end
+end
+
+M.exrc_reload = exrc_do {
+    prompt = 'Select exrc file to reload:',
+    display = display_exrc_loaded,
+    get_paths = function()
+        return exrc_list { is_loaded = true }
+    end,
+    on_select = loader.load,
+}
+
+M.exrc_reload_all = function()
+    local files = exrc_list { is_loaded = true }
+    for _, file in ipairs(files) do
+        loader.load(file)
+    end
+end
+
+M.exrc_unload = exrc_do {
+    prompt = 'Select exrc file to load:',
+    display = display_exrc_loaded,
+    get_paths = function()
+        return exrc_list { is_loaded = true }
+    end,
+    on_select = loader.unload,
+}
+
+M.exrc_unload_all = function()
+    local files = exrc_list { is_loaded = true }
+    for _, file in ipairs(files) do
+        loader.unload(file)
+    end
+end
 
 M.exrc_create = exrc_do {
     prompt = 'Select exrc file to create:',
@@ -247,5 +287,36 @@ M.exrc_create = exrc_do {
         vim.cmd.edit(vim.fs.joinpath(dir, defs.EXRC_NAME))
     end,
 }
+
+M.exrc_info = function()
+    local files = {}
+    for file, load_info in pairs(loader.loaded.db) do
+        table.insert(files, file .. (load_info.on_unload and ' (has on_unload)' or ''))
+    end
+
+    local lsp_handlers_count = 0
+    local lsp_handlers = {}
+    for file, handlers in pairs(lsp.handlers) do
+        table.insert(lsp_handlers, file)
+        for client, _ in pairs(handlers) do
+            lsp_handlers_count = lsp_handlers_count + 1
+            table.insert(lsp_handlers, '  ' .. client)
+        end
+    end
+
+    local info = vim.trim(string.format(
+        [[
+=> Loaded files: %d
+%s
+=> LSP handlers: %d
+%s
+]],
+        #files,
+        table.concat(files, '\n'),
+        lsp_handlers_count,
+        table.concat(lsp_handlers, '\n')
+    ))
+    print(info)
+end
 
 return M

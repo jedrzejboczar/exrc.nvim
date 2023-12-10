@@ -27,6 +27,12 @@ Feature include:
 * Setting up project-local LSP config when using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
 * **TODO:** cleanup hooks and reloading of exrc files
 
+### Similar plugins
+
+* [nvim-config-local](https://github.com/klen/nvim-config-local) unneeded as `vim.secure.trust` is now built into Neovim; does not provide `.nvim.lua` helpers
+* [neoconf.nvim](https://github.com/folke/neoconf.nvim) limited config as it uses JSON files not Lua; can only update LSP `config.settings.*`
+* [nlsp-settings.nvim](https://github.com/tamago324/nlsp-settings.nvim) like neoconf.nvim
+
 ## Installation
 
 Currently requires Neovim nightly.
@@ -51,8 +57,13 @@ Run `require('exrc').setup { ... }`.
 Available options (with default values):
 ```lua
 require('exrc').setup {
-    on_dir_changed = true, -- create DirChanged autocmd that loads exrc file from new directory
-    trust_on_write = true, -- create BufWritePost autocmd to trust saved exrc files
+    on_dir_changed = true, -- Automatically load exrc files on DirChanged autocmd
+    trust_on_write = true, -- Automatically trust when saving exrc file
+    use_telescope = true, -- Use telescope instead of vim.ui.select for picking files (if available)
+    min_log_level = vim.log.levels.TRACE, -- Disable notifications below this level
+    lsp = {
+        auto_setup = false, -- Automatically configure lspconfig to register on_new_config
+    },
 }
 ```
 
@@ -72,15 +83,16 @@ ctx:source_up()
 ### LSP
 
 To set up local LSP configuration you must be using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) (current limitation).
-Configure the `on_setup` hook such that it sets `on_new_config` hook from exrc.nvim for each of your LSP setups:
+If not using `lsp.auto_setup = true` then manually configure the `on_setup` hook such that
+it sets `on_new_config` hook from exrc.nvim for each of your LSP setups:
 ```lua
 local lsp_util = require('lspconfig.util')
 lsp_util.on_setup = lsp_util.add_hook_before(lsp_util.on_setup, function(config, user_config)
     config.on_new_config = lsp_util.add_hook_before(config.on_new_config, require('exrc.lsp').on_new_config)
 end)
 ```
-This on_new_config hook will check all LSP handlers registered in exrc files and apply updates from matching handlers
-whenever LSP client is started.
+This `on_new_config` hook will check all LSP handlers registered in exrc files and apply
+updates from matching handlers whenever LSP client is started.
 
 Now you can use `lsp_setup` in your exrc files. Here is an example content of `.nvim.lua`:
 ```lua

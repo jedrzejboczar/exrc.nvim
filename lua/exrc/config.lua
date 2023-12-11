@@ -57,7 +57,7 @@ local function warn_on_unknown_keys(conf)
     if #unknown > 0 then
         vim.schedule(function()
             vim.notify(
-                'Unknown keys passed to possession.setup:\n  ' .. table.concat(unknown, '\n  '),
+                'Unknown keys passed to exrc.nvim setup:\n  ' .. table.concat(unknown, '\n  '),
                 vim.log.levels.WARN
             )
         end)

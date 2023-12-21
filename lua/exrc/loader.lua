@@ -163,8 +163,8 @@ function M.load_pending()
 end
 
 local function is_float()
-    local config = vim.api.nvim_win_get_config(0)
-    return config.relative and config.relative ~= ''
+    local win_config = vim.api.nvim_win_get_config(0)
+    return win_config.relative and win_config.relative ~= ''
 end
 
 --- Determines if user is ready to hanndle ui.select

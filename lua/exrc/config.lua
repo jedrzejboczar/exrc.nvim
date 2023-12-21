@@ -8,7 +8,7 @@ local function defaults()
         on_dir_changed = true, -- Automatically load exrc files on DirChanged autocmd
         trust_on_write = true, -- Automatically trust when saving exrc file
         use_telescope = true, -- Use telescope instead of vim.ui.select for picking files (if available)
-        min_log_level = vim.log.levels.TRACE, -- Disable notifications below this level
+        min_log_level = vim.log.levels.DEBUG, -- Disable notifications below this level (TRACE=most logs)
         lsp = {
             auto_setup = false, -- Automatically configure lspconfig to register on_new_config
         },

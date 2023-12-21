@@ -1,5 +1,6 @@
 local M = {}
 
+local config = require('exrc.config')
 local log = require('exrc.log')
 
 function M.coroutine_resume()
@@ -83,7 +84,7 @@ function M.get_load_info()
         if frame.what == 'main' then
             local info
             if frame.source == '<nvim>' then
-                info = { type = 'exrc', path = M.clean_path('.nvim.lua') }
+                info = { type = 'exrc', path = M.clean_path(config.exrc_name) }
             elseif frame.source:sub(1, 1) == '@' then
                 local path = frame.source:sub(2)
                 -- :source will have a full path, but this might not always be true

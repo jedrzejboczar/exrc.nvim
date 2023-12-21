@@ -3,6 +3,8 @@ local M = {}
 local function defaults()
     -- stylua: ignore
     return {
+        exrc_name = '.nvim.lua', -- Name of exrc files to use
+        on_vim_enter = true, -- Load exrc from current directory on start
         on_dir_changed = true, -- Automatically load exrc files on DirChanged autocmd
         trust_on_write = true, -- Automatically trust when saving exrc file
         use_telescope = true, -- Use telescope instead of vim.ui.select for picking files (if available)

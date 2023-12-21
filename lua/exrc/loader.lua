@@ -1,5 +1,6 @@
 local M = {}
 
+local config = require('exrc.config')
 local log = require('exrc.log')
 local utils = require('exrc.utils')
 
@@ -137,7 +138,7 @@ function M.load_pending()
         table.sort(items)
 
         local item = utils.ui_select(items, {
-            prompt = 'Select .nvim.lua files to source, or quit to abort',
+            prompt = string.format('Select %s files to source, or quit to abort', config.exrc_name),
             format_item = function(item)
                 return vim.fn.fnamemodify(item, ':~')
             end,
@@ -201,10 +202,11 @@ end
 
 --- Load exrc files in given directories
 ---@param dirs string[]
-function M.load_from_dirs(dirs)
+---@param try_now boolean?
+function M.load_from_dirs(dirs, try_now)
     local candidates = vim.iter(dirs)
         :map(function(dir)
-            return vim.fs.joinpath(dir, '.nvim.lua')
+            return vim.fs.joinpath(dir, config.exrc_name)
         end)
         :filter(function(exrc)
             return vim.fn.filereadable(exrc) == 1
@@ -212,7 +214,7 @@ function M.load_from_dirs(dirs)
         :totable()
     candidates = utils.unique(candidates)
 
-    M.ui_load(candidates)
+    M.ui_load(candidates, try_now)
 end
 
 --- Load exrc from files in directories from getcwd (global/tabs/windows),
@@ -220,6 +222,17 @@ end
 ---@param opts? { global?: boolean, tabs?: boolean, windows?: boolean }
 function M.load_from_cwd(opts)
     M.load_from_dirs(utils.get_dirs(opts))
+end
+
+--- VimEnter handler that loads exrc files
+function M.on_vim_enter()
+    local cwd = vim.fn.getcwd(-1, -1)
+    local exrc = vim.fs.joinpath(cwd, config.exrc_name)
+    local exists = vim.fn.filereadable(exrc) == 1
+    log.trace('exrc.on_vim_enter(%s): %s', cwd, exists and 'found' or 'not found')
+    if exists then
+        M.load(exrc) -- do not use ui
+    end
 end
 
 --- DirChanged handler that loads exrc files

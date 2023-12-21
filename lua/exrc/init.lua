@@ -21,6 +21,9 @@ local lazy_cmd = setmetatable({}, {
 })
 
 function M.setup(opts)
+    log.trace('exrc.nvim setup with &exrc=%s', vim.o.exrc)
+
+    opts = opts or {}
     require('exrc.config').setup(opts)
 
     local command = vim.api.nvim_create_user_command
@@ -62,10 +65,25 @@ function M.setup(opts)
     })
 
     command('ExrcCreate', lazy_cmd.exrc_create, {
-        desc = 'Select path to create a new .nvim.lua file',
+        desc = string.format('Select path to create a new %s file', config.exrc_name),
     })
 
     local group = vim.api.nvim_create_augroup('Exrc', { clear = true })
+
+    if config.on_vim_enter then
+        if vim.v.vim_did_enter ~= 0 then
+            log.warn('VimEnter has already fired when running exrc.nvim setup! Are you lazy-loading this plugin?')
+            require('exrc.loader').on_vim_enter()
+        else
+            vim.api.nvim_create_autocmd('VimEnter', {
+                group = group,
+                desc = 'Load exrc file on startup',
+                callback = function()
+                    require('exrc.loader').on_vim_enter()
+                end,
+            })
+        end
+    end
 
     if config.on_dir_changed then
         vim.api.nvim_create_autocmd('DirChanged', {
@@ -81,7 +99,7 @@ function M.setup(opts)
         vim.api.nvim_create_autocmd('BufWritePost', {
             group = group,
             desc = 'Trust exrc files after write',
-            pattern = require('exrc.defs').EXRC_NAME,
+            pattern = config.exrc_name,
             callback = function()
                 local ok, err = vim.secure.trust {
                     action = 'allow',

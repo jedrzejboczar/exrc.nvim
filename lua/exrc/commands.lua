@@ -1,7 +1,6 @@
 local M = {}
 
 local config = require('exrc.config')
-local defs = require('exrc.defs')
 local loader = require('exrc.loader')
 local log = require('exrc.log')
 local lsp = require('exrc.lsp')
@@ -27,10 +26,10 @@ local display_exrc_loaded = {
 
 local display_exrc_dir = {
     format_item = function(dir)
-        return vim.fs.joinpath(dir, defs.EXRC_NAME)
+        return vim.fs.joinpath(dir, config.exrc_name)
     end,
     telescope_display = function(entry, _display)
-        return vim.fs.joinpath(entry.value, defs.EXRC_NAME)
+        return vim.fs.joinpath(entry.value, config.exrc_name)
     end,
 }
 
@@ -110,7 +109,7 @@ local function exrc_list(opts)
         if checked[cwd] then
             return
         end
-        local found = vim.fs.find(defs.EXRC_NAME, {
+        local found = vim.fs.find(config.exrc_name, {
             upward = true,
             type = 'file',
             path = cwd,
@@ -277,14 +276,14 @@ M.exrc_create = exrc_do {
         dirs = vim.tbl_map(utils.clean_path, dirs)
         dirs = utils.unique(dirs)
         dirs = vim.tbl_filter(function(dir)
-            return vim.fn.filereadable(vim.fs.joinpath(dir, defs.EXRC_NAME)) == 0
+            return vim.fn.filereadable(vim.fs.joinpath(dir, config.exrc_name)) == 0
         end, dirs)
 
         table.sort(dirs)
         return dirs
     end,
     on_select = function(dir)
-        vim.cmd.edit(vim.fs.joinpath(dir, defs.EXRC_NAME))
+        vim.cmd.edit(vim.fs.joinpath(dir, config.exrc_name))
     end,
 }
 

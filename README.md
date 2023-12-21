@@ -13,15 +13,20 @@ configuration. For a long time it was considered a security risk because it coul
 this is no longer the case - Neovim manages a database of "trusted" files and, whenever loading a file which has
 been modified since last time, you will be asked if you trust the file before executing any code.
 
-This plugin adds several utilities that make it easier to write your `|exrc|` files in Lua
-(**only** `.nvim.lua` files are supported, **not** the Vimscript ones: `.nvimrc`/`.exrc`).
+While `|exrc|` is useful, it is limited to only load the file on Neovim startup and does not fit workflows where
+you change current directory at runtime (either manually or by loading a different session) - it assumes that you
+will open new Neovim instance. This plugin serves as an alternative to the `|exrc|` option, it implements it's
+functionality, extends it and adds several utilities that make it easier to write your `|exrc|` files in Lua.
+
 Features include:
 
-* Auto-detect path to the currently executed exrc (`.nvim.lua`)
+* Configurable name of exrc files (defaults to `.nvim.lua`)
+* Auto-detect path to the exrc file that is currently being executed
 * Provide `source_up` for loading exrc from directories above
 * `:Exrc*` commands for managing exrc files (info, edit, load/unload/reload, ...)
 * Automatic telescope integration if available
 * Auto-trust exrc files changed from withing Neovim
+* Automatically load exrc on `VimEnter`
 * Automatically load exrc when changing directory with `:cd`
 * Setting up project-local LSP config (even `config.cmd`) when using [nvim-lspconfig](https://github.com/neovim/nvim-lspconfig)
 * Set `on_unload` cleanup hooks called when un-/reloading exrc files
@@ -74,6 +79,22 @@ require('exrc').setup {
     },
 }
 ```
+
+> **IMPORTANT!** When you use `on_vim_enter=true` then **do not** lazy-load this plugin.
+
+### Relation to the builtin `exrc` option
+
+`exrc` files were originally meant to run only once at startup, so existing `exrc` files in your projects
+may not be written in a way that will work well when loading in other situations (or more than once).
+If you feel so, then you might decide to use some other name then the default name `.nvim.lua`
+(e.g. `.nvim.local.lua`). If you do so, then this plugin will become orthogonal to the `exrc` option and
+there should be no problems with using both.
+
+However, the default for this plugin is to use `.nvim.lua` with the assumption that you are in control of
+exrc files and you will adjust them if needed. You can disable the `exrc` option (`:set noexrc`) and let
+exrc.nvim handle exrc files (it will set up `VimEnter` and `DirChanged` autocmds for loading the files).
+But if you decide to still keep `exrc` enabled then it shouldn't cause problems - the file won't be loaded
+twice.
 
 ## Usage
 
